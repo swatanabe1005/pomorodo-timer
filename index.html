@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ポモドーロタイマー</title>
+    <style>
+        /* --- CSSスタイル --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 2.5rem;
+        }
+        #status {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        #timer {
+            font-size: 6rem;
+            font-weight: 300;
+            margin: 20px 0;
+        }
+        .buttons button {
+            font-size: 1rem;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        #startBtn {
+            background-color: #28a745;
+            color: white;
+        }
+        #startBtn:hover {
+            background-color: #218838;
+        }
+        #stopBtn {
+            background-color: #dc3545;
+            color: white;
+        }
+        #stopBtn:hover {
+            background-color: #c82333;
+        }
+        #resetBtn {
+            background-color: #6c757d;
+            color: white;
+        }
+        #resetBtn:hover {
+            background-color: #5a6268;
+        }
+        .buttons button:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>ポモドーロタイマー</h1>
+        <p id="status">作業</p>
+        <div id="timer">25:00</div>
+        <div class="buttons">
+            <button id="startBtn">スタート</button>
+            <button id="stopBtn">ストップ</button>
+            <button id="resetBtn">リセット</button>
+        </div>
+    </div>
+
+    <audio id="alarmSound" src="https://soundeffect-lab.info/sound/button/mp3/decision-1.mp3" preload="auto"></audio>
+
+    <script>
+        // --- JavaScriptロジック ---
+
+        // DOM要素の取得
+        const timerDisplay = document.getElementById('timer');
+        const statusDisplay = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const alarmSound = document.getElementById('alarmSound');
+
+        // タイマー設定
+        const WORK_MINUTES = 25;
+        const BREAK_MINUTES = 5;
+
+        let timerInterval = null; // setIntervalのIDを格納
+        let isWorkSession = true; // 現在が作業セッションか
+        let remainingTime = WORK_MINUTES * 60; // 残り時間（秒）
+
+        // イベントリスナーの設定
+        startBtn.addEventListener('click', startTimer);
+        stopBtn.addEventListener('click', stopTimer);
+        resetBtn.addEventListener('click', resetTimer);
+
+        // 初期表示を更新
+        updateDisplay();
+
+        /**
+         * 残り時間を HH:MM 形式で表示する
+         */
+        function updateDisplay() {
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+            // 2桁になるように0を埋める (例: 5 -> 05)
+            timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            // ブラウザのタブタイトルにも時間を表示
+            document.title = `${timerDisplay.textContent} - ${isWorkSession ? '作業中' : '休憩中'}`;
+        }
+
+        /**
+         * タイマーを開始する
+         */
+        function startTimer() {
+            if (timerInterval !== null) return; // 既にタイマーが動いていれば何もしない
+
+            timerInterval = setInterval(() => {
+                remainingTime--;
+                updateDisplay();
+
+                if (remainingTime < 0) {
+                    alarmSound.play(); // 通知音を鳴らす
+                    switchSession(); // セッションを切り替える
+                }
+            }, 1000);
+        }
+
+        /**
+         * タイマーを停止する
+         */
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null; // インターバルをリセット
+        }
+
+        /**
+         * タイマーをリセットする
+         */
+        function resetTimer() {
+            stopTimer();
+            remainingTime = (isWorkSession ? WORK_MINUTES : BREAK_MINUTES) * 60;
+            updateDisplay();
+        }
+
+        /**
+         * 作業と休憩セッションを切り替える
+         */
+        function switchSession() {
+            stopTimer();
+            isWorkSession = !isWorkSession; // セッションを反転
+            remainingTime = (isWorkSession ? WORK_MINUTES : BREAK_MINUTES) * 60;
+            statusDisplay.textContent = isWorkSession ? '作業' : '休憩';
+            updateDisplay();
+            startTimer(); // 新しいセッションを自動で開始
+        }
+    </script>
+
+</body>
+</html>
