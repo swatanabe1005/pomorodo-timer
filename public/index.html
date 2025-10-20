@@ -1,89 +1,178 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
-
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/12.4.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/12.4.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/12.4.0/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ポモドーロタイマー</title>
+    <style>
+        /* --- CSSスタイル --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 2.5rem;
+        }
+        #status {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        #timer {
+            font-size: 6rem;
+            font-weight: 300;
+            margin: 20px 0;
+        }
+        .buttons button {
+            font-size: 1rem;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        #startBtn {
+            background-color: #28a745;
+            color: white;
+        }
+        #startBtn:hover {
+            background-color: #218838;
+        }
+        #stopBtn {
+            background-color: #dc3545;
+            color: white;
+        }
+        #stopBtn:hover {
+            background-color: #c82333;
+        }
+        #resetBtn {
+            background-color: #6c757d;
+            color: white;
+        }
+        #resetBtn:hover {
+            background-color: #5a6268;
+        }
+        .buttons button:active {
+            transform: scale(0.98);
+        }
     </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
+</head>
+<body>
+
+    <div class="container">
+        <h1>ポモドーロタイマー</h1>
+        <p id="status">作業</p>
+        <div id="timer">25:00</div>
+        <div class="buttons">
+            <button id="startBtn">スタート</button>
+            <button id="stopBtn">ストップ</button>
+            <button id="resetBtn">リセット</button>
+        </div>
     </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
+
+    <audio id="alarmSound" src="https://soundeffect-lab.info/sound/button/mp3/decision-1.mp3" preload="auto"></audio>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        // --- JavaScriptロジック ---
 
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+        // DOM要素の取得
+        const timerDisplay = document.getElementById('timer');
+        const statusDisplay = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const alarmSound = document.getElementById('alarmSound');
+
+        // タイマー設定
+        const WORK_MINUTES = 25;
+        const BREAK_MINUTES = 5;
+
+        let timerInterval = null; // setIntervalのIDを格納
+        let isWorkSession = true; // 現在が作業セッションか
+        let remainingTime = WORK_MINUTES * 60; // 残り時間（秒）
+
+        // イベントリスナーの設定
+        startBtn.addEventListener('click', startTimer);
+        stopBtn.addEventListener('click', stopTimer);
+        resetBtn.addEventListener('click', resetTimer);
+
+        // 初期表示を更新
+        updateDisplay();
+
+        /**
+         * 残り時間を HH:MM 形式で表示する
+         */
+        function updateDisplay() {
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+            // 2桁になるように0を埋める (例: 5 -> 05)
+            timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            // ブラウザのタブタイトルにも時間を表示
+            document.title = `${timerDisplay.textContent} - ${isWorkSession ? '作業中' : '休憩中'}`;
         }
-      });
+
+        /**
+         * タイマーを開始する
+         */
+        function startTimer() {
+            if (timerInterval !== null) return; // 既にタイマーが動いていれば何もしない
+
+            timerInterval = setInterval(() => {
+                remainingTime--;
+                updateDisplay();
+
+                if (remainingTime < 0) {
+                    alarmSound.play(); // 通知音を鳴らす
+                    switchSession(); // セッションを切り替える
+                }
+            }, 1000);
+        }
+
+        /**
+         * タイマーを停止する
+         */
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null; // インターバルをリセット
+        }
+
+        /**
+         * タイマーをリセットする
+         */
+        function resetTimer() {
+            stopTimer();
+            remainingTime = (isWorkSession ? WORK_MINUTES : BREAK_MINUTES) * 60;
+            updateDisplay();
+        }
+
+        /**
+         * 作業と休憩セッションを切り替える
+         */
+        function switchSession() {
+            stopTimer();
+            isWorkSession = !isWorkSession; // セッションを反転
+            remainingTime = (isWorkSession ? WORK_MINUTES : BREAK_MINUTES) * 60;
+            statusDisplay.textContent = isWorkSession ? '作業' : '休憩';
+            updateDisplay();
+            startTimer(); // 新しいセッションを自動で開始
+        }
     </script>
-  </body>
+
+</body>
 </html>
